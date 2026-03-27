@@ -255,9 +255,10 @@ cmd_start() {
 
   # Ensure repo is fully writable by container user (UID 1001)
   # Logan fix agents need write access to source files, not just deliverables
+  # Use docker to handle files owned by container user from previous runs
   if [ -d "./repos/$REPO" ]; then
     mkdir -p "./repos/$REPO/deliverables"
-    chmod -R 777 "./repos/$REPO"
+    docker run --rm -v "$(pwd)/repos/$REPO:/repo" alpine chmod -R 777 /repo 2>/dev/null || chmod -R 777 "./repos/$REPO" 2>/dev/null || true
   fi
 
   # Ensure containers are running (starts them if needed)
