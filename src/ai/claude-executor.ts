@@ -187,6 +187,7 @@ export async function runClaudePrompt(
     'ANTHROPIC_MEDIUM_MODEL',
     'ANTHROPIC_LARGE_MODEL',
     'CLAUDE_CODE_MAX_OUTPUT_TOKENS',
+    'CLAUDE_CODE_THINKING',
   ];
   for (const name of passthroughVars) {
     if (process.env[name]) {
