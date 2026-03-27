@@ -1,7 +1,8 @@
 node_modules/
 .env
-workspaces/
+audit-logs/
 credentials/
 dist/
 repos/
-.turbo/
+run-vicgov.sh
+configs/vicgov.yaml

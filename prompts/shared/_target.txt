@@ -1,0 +1,2 @@
+Target Repository: {{REPO_PATH}}
+Shannon Report: {{SHANNON_REPORT_PATH}}

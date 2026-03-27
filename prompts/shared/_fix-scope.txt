@@ -1,0 +1,1 @@
+**REMEDIATION SCOPE:** Only fix vulnerabilities that were confirmed as EXPLOITED or POTENTIAL in Shannon's assessment report. Do not modify code unrelated to the identified vulnerabilities. Minimize blast radius - surgical fixes only.

@@ -1,0 +1,7 @@
+**FIX RULES:**
+- Do NOT introduce new dependencies unless absolutely necessary
+- Prefer framework-native security features over third-party libraries
+- Every fix must be backwards-compatible with existing tests
+- Do NOT change API signatures or database schemas unless the vulnerability requires it
+- Add inline comments explaining WHY the security fix was needed (reference vuln ID)
+- All fixes must be on a dedicated git branch: `logan/remediation-{timestamp}`
