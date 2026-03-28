@@ -1,5 +1,6 @@
 node_modules/
 .env
+.claude/
 audit-logs/
 credentials/
 dist/
