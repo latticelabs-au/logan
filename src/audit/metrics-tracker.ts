@@ -337,7 +337,8 @@ export class MetricsTracker {
       'planning': [],
       'fix-implementation': [],
       'review': [],
-      'validation': [],
+      'targeted-validation': [],
+      'full-audit': [],
       'comparison': [],
       'reporting': [],
     };

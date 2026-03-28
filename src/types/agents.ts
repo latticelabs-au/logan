@@ -21,7 +21,8 @@ export const ALL_AGENTS = [
   'fix-ssrf',
   'fix-authz',
   'fix-review',
-  'shannon-validate',
+  'targeted-validate',
+  'shannon-full-audit',
   'compare',
   'report',
 ] as const;

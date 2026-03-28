@@ -387,13 +387,18 @@ export async function remediationPipelineWorkflow(
     // === Phase 4: Fix Review ===
     await runSequentialPhase('review', 'fix-review', a.runFixReviewAgent);
 
-    // === Phase 5: Shannon Validation ===
-    await runSequentialPhase('validation', 'shannon-validate', a.runShannonValidateAgent);
+    // === Phase 5: Targeted Validation ===
+    // Re-check the specific vulns that were fixed — fast, focused confirmation
+    await runSequentialPhase('targeted-validation', 'targeted-validate', a.runTargetedValidateAgent);
 
-    // === Phase 6: Comparison ===
+    // === Phase 6: Full Shannon Audit ===
+    // Complete blind pentest from scratch — catches regressions and new vulns
+    await runSequentialPhase('full-audit', 'shannon-full-audit', a.runShannonFullAuditAgent);
+
+    // === Phase 7: Comparison ===
     await runSequentialPhase('comparison', 'compare', a.runCompareAgent);
 
-    // === Phase 7: Reporting ===
+    // === Phase 8: Reporting ===
     await runSequentialPhase('reporting', 'report', a.runReportAgent);
 
     state.status = 'completed';

@@ -225,8 +225,12 @@ export async function runFixReviewAgent(input: ActivityInput): Promise<AgentMetr
   return runAgentActivity('fix-review', input);
 }
 
-export async function runShannonValidateAgent(input: ActivityInput): Promise<AgentMetrics> {
-  return runAgentActivity('shannon-validate', input);
+export async function runTargetedValidateAgent(input: ActivityInput): Promise<AgentMetrics> {
+  return runAgentActivity('targeted-validate', input);
+}
+
+export async function runShannonFullAuditAgent(input: ActivityInput): Promise<AgentMetrics> {
+  return runAgentActivity('shannon-full-audit', input);
 }
 
 export async function runCompareAgent(input: ActivityInput): Promise<AgentMetrics> {

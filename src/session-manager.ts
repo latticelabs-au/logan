@@ -68,17 +68,24 @@ export const AGENTS: Readonly<Record<AgentName, AgentDefinition>> = Object.freez
     promptTemplate: 'fix-review',
     deliverableFilename: 'fix_review_report.md',
   },
-  'shannon-validate': {
-    name: 'shannon-validate',
-    displayName: 'Shannon validation agent',
+  'targeted-validate': {
+    name: 'targeted-validate',
+    displayName: 'Targeted validation agent',
     prerequisites: ['fix-review'],
-    promptTemplate: 'shannon-validate',
-    deliverableFilename: 'shannon_validation_report.md',
+    promptTemplate: 'targeted-validate',
+    deliverableFilename: 'targeted_validation_report.md',
+  },
+  'shannon-full-audit': {
+    name: 'shannon-full-audit',
+    displayName: 'Shannon full audit agent',
+    prerequisites: ['targeted-validate'],
+    promptTemplate: 'shannon-full-audit',
+    deliverableFilename: 'shannon_full_audit_report.md',
   },
   'compare': {
     name: 'compare',
     displayName: 'Comparison agent',
-    prerequisites: ['shannon-validate'],
+    prerequisites: ['shannon-full-audit'],
     promptTemplate: 'compare',
     deliverableFilename: 'comparison_report.json',
   },
@@ -98,7 +105,8 @@ export type PhaseName =
   | 'planning'
   | 'fix-implementation'
   | 'review'
-  | 'validation'
+  | 'targeted-validation'
+  | 'full-audit'
   | 'comparison'
   | 'reporting';
 
@@ -112,7 +120,8 @@ export const AGENT_PHASE_MAP: Readonly<Record<AgentName, PhaseName>> = Object.fr
   'fix-ssrf': 'fix-implementation',
   'fix-authz': 'fix-implementation',
   'fix-review': 'review',
-  'shannon-validate': 'validation',
+  'targeted-validate': 'targeted-validation',
+  'shannon-full-audit': 'full-audit',
   'compare': 'comparison',
   'report': 'reporting',
 });
@@ -135,7 +144,8 @@ export const AGENT_VALIDATORS: Record<AgentName, AgentValidator> = Object.freeze
   'fix-ssrf': createDeliverableValidator('ssrf_fix_report.md'),
   'fix-authz': createDeliverableValidator('authz_fix_report.md'),
   'fix-review': createDeliverableValidator('fix_review_report.md'),
-  'shannon-validate': createDeliverableValidator('shannon_validation_report.md'),
+  'targeted-validate': createDeliverableValidator('targeted_validation_report.md'),
+  'shannon-full-audit': createDeliverableValidator('shannon_full_audit_report.md'),
   'compare': createDeliverableValidator('comparison_report.json'),
 
   // Final remediation report

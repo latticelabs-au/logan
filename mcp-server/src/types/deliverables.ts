@@ -28,8 +28,9 @@ export enum DeliverableType {
   // Fix review agent
   FIX_REVIEW = 'FIX_REVIEW',
 
-  // Shannon validation agent
-  SHANNON_VALIDATION = 'SHANNON_VALIDATION',
+  // Validation agents
+  TARGETED_VALIDATION = 'TARGETED_VALIDATION',
+  SHANNON_FULL_AUDIT = 'SHANNON_FULL_AUDIT',
 
   // Comparison agent
   COMPARISON = 'COMPARISON',
@@ -51,7 +52,8 @@ export const DELIVERABLE_FILENAMES: Record<DeliverableType, string> = {
   [DeliverableType.SSRF_FIX]: 'ssrf_fix_report.md',
   [DeliverableType.AUTHZ_FIX]: 'authz_fix_report.md',
   [DeliverableType.FIX_REVIEW]: 'fix_review_report.md',
-  [DeliverableType.SHANNON_VALIDATION]: 'shannon_validation_report.md',
+  [DeliverableType.TARGETED_VALIDATION]: 'targeted_validation_report.md',
+  [DeliverableType.SHANNON_FULL_AUDIT]: 'shannon_full_audit_report.md',
   [DeliverableType.COMPARISON]: 'comparison_report.json',
   [DeliverableType.REMEDIATION_REPORT]: 'remediation_report.md',
 };
