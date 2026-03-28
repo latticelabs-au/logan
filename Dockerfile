@@ -1,5 +1,5 @@
 #
-# Multi-stage Dockerfile for Pentest Agent
+# Multi-stage Dockerfile for Logan Remediation Agent
 # Uses Chainguard Wolfi for minimal attack surface and supply chain security
 
 # Builder stage - Install tools and dependencies
@@ -48,7 +48,7 @@ RUN git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/what
     chmod +x /usr/local/bin/whatweb
 
 # Install Python-based tools
-RUN pip3 install --no-cache-dir schemathesis
+RUN pip3 install --no-cache-dir schemathesis pytest
 
 # Runtime stage - Minimal production image
 FROM cgr.dev/chainguard/wolfi-base:latest AS runtime
@@ -152,10 +152,12 @@ ENV HOME=/tmp
 ENV XDG_CACHE_HOME=/tmp/.cache
 ENV XDG_CONFIG_HOME=/tmp/.config
 
-# Configure Git identity and trust all directories
-RUN git config --global user.email "agent@localhost" && \
-    git config --global user.name "Pentest Agent" && \
-    git config --global --add safe.directory '*'
+# Configure Git identity from env vars (defaults to Logan Agent) and trust all directories
+RUN git config --global --add safe.directory '*'
+ENV GIT_AUTHOR_NAME="${GIT_AUTHOR_NAME:-Logan Agent}"
+ENV GIT_AUTHOR_EMAIL="${GIT_AUTHOR_EMAIL:-agent@localhost}"
+ENV GIT_COMMITTER_NAME="${GIT_COMMITTER_NAME:-Logan Agent}"
+ENV GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-agent@localhost}"
 
 # Set entrypoint
 ENTRYPOINT ["node", "dist/shannon.js"]

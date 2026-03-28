@@ -132,13 +132,6 @@ function computeSummary(state: PipelineState): PipelineSummary {
   };
 }
 
-/** Result from a single fix agent in the parallel phase. */
-interface FixAgentResult {
-  agentName: AgentName;
-  metrics: AgentMetrics | null;
-  error: string | null;
-}
-
 export async function remediationPipelineWorkflow(
   input: PipelineInput
 ): Promise<PipelineState> {
@@ -254,94 +247,6 @@ export async function remediationPipelineWorkflow(
     }
   }
 
-  // Build configs for the 5 parallel fix agents
-  function buildFixConfigs(): Array<{
-    agentName: AgentName;
-    runAgent: () => Promise<AgentMetrics>;
-  }> {
-    return [
-      {
-        agentName: 'fix-injection',
-        runAgent: () => a.runFixInjectionAgent(activityInput),
-      },
-      {
-        agentName: 'fix-xss',
-        runAgent: () => a.runFixXssAgent(activityInput),
-      },
-      {
-        agentName: 'fix-auth',
-        runAgent: () => a.runFixAuthAgent(activityInput),
-      },
-      {
-        agentName: 'fix-ssrf',
-        runAgent: () => a.runFixSsrfAgent(activityInput),
-      },
-      {
-        agentName: 'fix-authz',
-        runAgent: () => a.runFixAuthzAgent(activityInput),
-      },
-    ];
-  }
-
-  // Aggregate results from settled fix agent promises into workflow state
-  function aggregateFixResults(
-    results: PromiseSettledResult<FixAgentResult>[]
-  ): void {
-    const failedAgents: string[] = [];
-
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const { agentName, metrics } = result.value;
-
-        if (metrics) {
-          state.agentMetrics[agentName] = metrics;
-          state.completedAgents.push(agentName);
-        } else if (shouldSkip(agentName)) {
-          state.completedAgents.push(agentName);
-        }
-      } else {
-        const errorMsg =
-          result.reason instanceof Error
-            ? result.reason.message
-            : String(result.reason);
-        failedAgents.push(errorMsg);
-      }
-    }
-
-    if (failedAgents.length > 0) {
-      log.warn(`${failedAgents.length} fix agent(s) failed`, {
-        failures: failedAgents,
-      });
-    }
-  }
-
-  // Run thunks with a concurrency limit, returning PromiseSettledResult for each.
-  // When limit >= thunks.length (default), all launch concurrently.
-  // NOTE: Results are in completion order, not input order. Callers must key on value fields, not index.
-  async function runWithConcurrencyLimit(
-    thunks: Array<() => Promise<FixAgentResult>>,
-    limit: number
-  ): Promise<PromiseSettledResult<FixAgentResult>[]> {
-    const results: PromiseSettledResult<FixAgentResult>[] = [];
-    const inFlight = new Set<Promise<void>>();
-
-    for (const thunk of thunks) {
-      const slot = thunk().then(
-        (value) => { results.push({ status: 'fulfilled', value }); },
-        (reason: unknown) => { results.push({ status: 'rejected', reason }); }
-      ).finally(() => { inFlight.delete(slot); });
-
-      inFlight.add(slot);
-
-      if (inFlight.size >= limit) {
-        await Promise.race(inFlight);
-      }
-    }
-
-    await Promise.allSettled(inFlight);
-    return results;
-  }
-
   try {
     // === Preflight Validation ===
     // Quick sanity checks before committing to expensive agent runs.
@@ -357,30 +262,14 @@ export async function remediationPipelineWorkflow(
     // === Phase 2: Fix Planning ===
     await runSequentialPhase('planning', 'fix-plan', a.runFixPlanAgent);
 
-    // === Phase 3: Fix Implementation (5 parallel agents) ===
-    state.currentPhase = 'fix-implementation';
-    state.currentAgent = 'fix-agents';
+    // === Phase 3: Fix Implementation (sequential — prevents cross-agent commit spillover) ===
     await a.logPhaseTransition(activityInput, 'fix-implementation', 'start');
 
-    const maxConcurrent = input.pipelineConfig?.max_concurrent_pipelines ?? 5;
-
-    const fixConfigs = buildFixConfigs();
-    const fixThunks: Array<() => Promise<FixAgentResult>> = [];
-
-    for (const config of fixConfigs) {
-      if (!shouldSkip(config.agentName)) {
-        fixThunks.push(async (): Promise<FixAgentResult> => {
-          const metrics = await config.runAgent();
-          return { agentName: config.agentName, metrics, error: null };
-        });
-      } else {
-        log.info(`Skipping ${config.agentName} (already complete)`);
-        state.completedAgents.push(config.agentName);
-      }
-    }
-
-    const fixResults = await runWithConcurrencyLimit(fixThunks, maxConcurrent);
-    aggregateFixResults(fixResults);
+    await runSequentialPhase('fix-implementation', 'fix-injection', a.runFixInjectionAgent);
+    await runSequentialPhase('fix-implementation', 'fix-xss', a.runFixXssAgent);
+    await runSequentialPhase('fix-implementation', 'fix-auth', a.runFixAuthAgent);
+    await runSequentialPhase('fix-implementation', 'fix-ssrf', a.runFixSsrfAgent);
+    await runSequentialPhase('fix-implementation', 'fix-authz', a.runFixAuthzAgent);
 
     await a.logPhaseTransition(activityInput, 'fix-implementation', 'complete');
 
